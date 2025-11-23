@@ -49,15 +49,48 @@ colcon build --symlink-install
 
 ### Testing
 
+Run all tests:
+
 ```bash
+source install/setup.bash
 colcon test
+colcon test-result --verbose
+```
+
+Run linters:
+
+```bash
+source install/setup.bash
+colcon test --ctest-args -L linters
+colcon test-result --verbose
+```
+
+Run only unit tests (everything except integration):
+
+```bash
+source install/setup.bash
+colcon test --ctest-args -E test_integration
+colcon test-result --verbose
+```
+
+Run only integration tests:
+
+```bash
+source install/setup.bash
+colcon test --ctest-args -R test_integration
 colcon test-result --verbose
 ```
 
 ### CI/CD
 
-All pull requests are automatically built and tested using GitHub Actions.
-The CI workflow runs on Ubuntu 24.04 with ROS 2 Jazzy.
+All pull requests and pushes to main are automatically built and tested using GitHub Actions.
+The CI workflow runs on Ubuntu 24.04 with ROS 2 Jazzy, executes a single `colcon test` to cover:
+
+- Code linting and formatting checks
+- Unit tests
+- Integration tests with demo automotive nodes
+
+After every run the workflow always calls `colcon test-result --verbose` and uploads the generated logs/results as artifacts for debugging.
 
 ## Contributing
 

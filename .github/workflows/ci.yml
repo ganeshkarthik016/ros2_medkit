@@ -3,10 +3,13 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -26,15 +29,27 @@ jobs:
       - name: Build packages
         run: |
           source /opt/ros/jazzy/setup.bash
-          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+          colcon build --symlink-install \
+            --cmake-args -DCMAKE_BUILD_TYPE=Release \
+            --event-handlers console_direct+
 
       - name: Run tests
+        timeout-minutes: 15
         run: |
           source /opt/ros/jazzy/setup.bash
           source install/setup.bash
-          colcon test --return-code-on-test-failure
+          colcon test --return-code-on-test-failure \
+            --event-handlers console_direct+
 
       - name: Show test results
         if: always()
-        run: |
-          colcon test-result --verbose
+        run: colcon test-result --verbose
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            log/
+            build/*/test_results/

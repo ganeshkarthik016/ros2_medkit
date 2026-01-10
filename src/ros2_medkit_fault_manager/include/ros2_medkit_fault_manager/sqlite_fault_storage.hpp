@@ -41,8 +41,12 @@ class SqliteFaultStorage : public FaultStorage {
   SqliteFaultStorage(SqliteFaultStorage &&) = delete;
   SqliteFaultStorage & operator=(SqliteFaultStorage &&) = delete;
 
-  bool report_fault(const std::string & fault_code, uint8_t severity, const std::string & description,
-                    const std::string & source_id, const rclcpp::Time & timestamp) override;
+  void set_debounce_config(const DebounceConfig & config) override;
+  DebounceConfig get_debounce_config() const override;
+
+  bool report_fault_event(const std::string & fault_code, uint8_t event_type, uint8_t severity,
+                          const std::string & description, const std::string & source_id,
+                          const rclcpp::Time & timestamp) override;
 
   std::vector<ros2_medkit_msgs::msg::Fault> get_faults(bool filter_by_severity, uint8_t severity,
                                                        const std::vector<std::string> & statuses) const override;
@@ -54,6 +58,8 @@ class SqliteFaultStorage : public FaultStorage {
   size_t size() const override;
 
   bool contains(const std::string & fault_code) const override;
+
+  size_t check_time_based_confirmation(const rclcpp::Time & current_time) override;
 
   /// Get the database path
   const std::string & db_path() const {
@@ -73,6 +79,7 @@ class SqliteFaultStorage : public FaultStorage {
   std::string db_path_;
   sqlite3 * db_{nullptr};
   mutable std::mutex mutex_;
+  DebounceConfig config_;
 };
 
 }  // namespace ros2_medkit_fault_manager

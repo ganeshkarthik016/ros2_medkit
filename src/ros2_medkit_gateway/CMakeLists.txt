@@ -32,6 +32,7 @@ find_package(action_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(ros2_medkit_msgs REQUIRED)
+find_package(ros2_medkit_serialization REQUIRED)
 
 # Find cpp-httplib using pkg-config
 find_package(PkgConfig REQUIRED)
@@ -103,8 +104,6 @@ add_library(gateway_lib STATIC
   src/config.cpp
   src/gateway_node.cpp
   src/discovery_manager.cpp
-  src/ros2_cli_wrapper.cpp
-  src/output_parser.cpp
   src/data_access_manager.cpp
   src/type_introspection.cpp
   src/native_topic_sampler.cpp
@@ -139,6 +138,7 @@ ament_target_dependencies(gateway_lib
   ament_index_cpp
   action_msgs
   ros2_medkit_msgs
+  ros2_medkit_serialization
 )
 
 target_link_libraries(gateway_lib

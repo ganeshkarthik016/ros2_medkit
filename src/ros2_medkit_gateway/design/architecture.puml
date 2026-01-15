@@ -46,15 +46,12 @@ package "ros2_medkit_gateway" {
         + sample_topics_parallel(): vector<TopicSampleResult>
     }
 
-    class ROS2CLIWrapper {
-        + exec(): string
-        + is_command_available(): bool
-        + escape_shell_arg(): string
-    }
-
-    class OutputParser {
-        + parse_yaml(): json
-        - yaml_to_json(): json
+    class JsonSerializer {
+        + serialize(): SerializedMessage
+        + deserialize(): json
+        + to_json(): json
+        + from_json(): RosMessage_Cpp
+        + yaml_to_json(): json {static}
     }
 
     class Area {
@@ -103,9 +100,8 @@ DiscoveryManager --> "rclcpp::Node" : uses
 RESTServer --> GatewayNode : uses
 RESTServer --> DataAccessManager : uses
 
-' DataAccessManager owns utility classes
-DataAccessManager *--> ROS2CLIWrapper : owns (publishing)
-DataAccessManager *--> OutputParser : owns
+' DataAccessManager owns utility classes (native implementation)
+DataAccessManager *--> JsonSerializer : owns (serialization)
 DataAccessManager *--> NativeTopicSampler : owns
 
 ' NativeTopicSampler uses Node interface

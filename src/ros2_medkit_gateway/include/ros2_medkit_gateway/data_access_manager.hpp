@@ -15,15 +15,17 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <shared_mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ros2_medkit_gateway/native_topic_sampler.hpp"
-#include "ros2_medkit_gateway/output_parser.hpp"
-#include "ros2_medkit_gateway/ros2_cli_wrapper.hpp"
 #include "ros2_medkit_gateway/type_introspection.hpp"
+#include "ros2_medkit_serialization/json_serializer.hpp"
 
 namespace ros2_medkit_gateway {
 
@@ -100,9 +102,26 @@ class DataAccessManager {
    */
   json sample_result_to_json(const TopicSampleResult & sample);
 
+  /**
+   * @brief Get or create a cached GenericPublisher for a topic
+   * @param topic_path Full topic path
+   * @param msg_type ROS 2 message type
+   * @return Shared pointer to GenericPublisher
+   */
+  rclcpp::GenericPublisher::SharedPtr get_or_create_publisher(const std::string & topic_path,
+                                                              const std::string & msg_type);
+
   rclcpp::Node * node_;
-  std::unique_ptr<ROS2CLIWrapper> cli_wrapper_;
-  std::unique_ptr<OutputParser> output_parser_;
+
+  /// JSON serializer for native message serialization
+  std::shared_ptr<ros2_medkit_serialization::JsonSerializer> serializer_;
+
+  /// Cached publishers (topic+type -> publisher)
+  std::unordered_map<std::string, rclcpp::GenericPublisher::SharedPtr> publishers_;
+
+  /// Mutex for thread-safe publisher cache access
+  mutable std::shared_mutex publishers_mutex_;
+
   std::unique_ptr<TypeIntrospection> type_introspection_;
   std::unique_ptr<NativeTopicSampler> native_sampler_;
   int max_parallel_samples_;

@@ -280,16 +280,22 @@ class NativeTopicSampler {
    */
   static bool is_system_topic(const std::string & topic_name);
 
- private:
-  /**
-   * @brief Get the message type for a topic from the graph
-   */
+private:
   std::string get_topic_type(const std::string & topic_name);
 
   rclcpp::Node * node_;
 
-  /// Native JSON serializer for topic deserialization
   std::shared_ptr<ros2_medkit_serialization::JsonSerializer> serializer_;
+
+  // Getter for cached component-topic map
+  const std::map<std::string, ComponentTopics>&
+  get_component_topic_map();
+
+  // --- Component topic map cache ---
+  std::map<std::string, ComponentTopics> topic_map_cache_;
+  size_t cached_graph_change_count_{0};
+  mutable std::mutex topic_map_mutex_;
 };
+
 
 }  // namespace ros2_medkit_gateway
